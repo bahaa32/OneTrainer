@@ -154,7 +154,7 @@ function run_python {
 }
 
 function run_pip {
-    "${OT_PIP_CMD}" "$@"
+    ${OT_PIP_CMD} "$@"
 }
 
 function run_venv {
