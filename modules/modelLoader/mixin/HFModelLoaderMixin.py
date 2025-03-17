@@ -19,6 +19,8 @@ import huggingface_hub
 from huggingface_hub.utils import EntryNotFoundError
 from safetensors.torch import load_file
 
+# Enable hf_transfer
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = 1
 
 class HFModelLoaderMixin(metaclass=ABCMeta):
     def __init__(self):
