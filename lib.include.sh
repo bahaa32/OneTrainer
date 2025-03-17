@@ -4,6 +4,8 @@ set -e
 
 # Detect absolute path to the directory where "lib.include.sh" resides.
 export SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+# Enable HF_TRANSFER
+export HF_HUB_ENABLE_HF_TRANSFER=1
 
 # Guard against including the library multiple times.
 readonly SCRIPT_DIR
