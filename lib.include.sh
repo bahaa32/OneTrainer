@@ -364,6 +364,14 @@ function install_requirements_in_active_env {
     print "Installing requirements in active environment..."
     run_pip_in_active_env install --upgrade pip setuptools
     run_pip_in_active_env install --upgrade --index-strategy unsafe-best-match -r requirements-global.txt -r "$(get_platform_requirements_path)"
+    
+    git clone https://github.com/huggingface/diffusers.git
+    cd diffusers && git checkout 464374f && cd ..
+    git clone https://github.com/Nerogar/mgds.git
+    cd mgds && git checkout 42c7ca0 && cd ..
+    
+    # Then install as editable from local directories
+    run_pip_in_active_env install -e ./diffusers -e ./mgds
     export OT_MUST_INSTALL_REQUIREMENTS="false"
 
     # Write update-check metadata to disk if user has requested "lazy updates",
