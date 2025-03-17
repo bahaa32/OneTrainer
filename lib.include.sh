@@ -363,7 +363,7 @@ function install_requirements_in_active_env {
     # be upgraded to the same versions as a fresh reinstall of requirements.txt.
     print "Installing requirements in active environment..."
     run_pip_in_active_env install --upgrade pip setuptools
-    run_pip_in_active_env install --upgrade -r requirements-global.txt -r "$(get_platform_requirements_path)"
+    run_pip_in_active_env install --upgrade --index-strategy unsafe-best-match -r requirements-global.txt -r "$(get_platform_requirements_path)"
     export OT_MUST_INSTALL_REQUIREMENTS="false"
 
     # Write update-check metadata to disk if user has requested "lazy updates",
