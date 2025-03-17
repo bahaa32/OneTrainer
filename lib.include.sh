@@ -158,7 +158,7 @@ function run_pip {
 }
 
 function run_venv {
-    run_python -m venv "$@"
+    uv venv "$@"
 }
 
 function has_python {
