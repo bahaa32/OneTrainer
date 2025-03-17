@@ -23,6 +23,7 @@ cd -- "${SCRIPT_DIR}"
 export OT_CONDA_CMD="${OT_CONDA_CMD:-${CONDA_EXE:-conda}}"
 export OT_CONDA_ENV="${OT_CONDA_ENV:-conda_env}"
 export OT_PYTHON_CMD="${OT_PYTHON_CMD:-python}"
+export OT_PIP_CMD="${OT_PIP_CMD:-uv pip}"
 export OT_PYTHON_VENV="${OT_PYTHON_VENV:-venv}"
 export OT_PREFER_VENV="${OT_PREFER_VENV:-false}"
 export OT_LAZY_UPDATES="${OT_LAZY_UPDATES:-false}"
@@ -153,7 +154,7 @@ function run_python {
 }
 
 function run_pip {
-    run_python -m pip "$@"
+    run_python -m "${OT_PIP_CMD}" "$@"
 }
 
 function run_venv {
