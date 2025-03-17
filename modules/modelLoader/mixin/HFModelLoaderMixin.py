@@ -1,9 +1,6 @@
 import json
 import os
 
-# Enable hf_transfer
-os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
-
 from abc import ABCMeta
 from itertools import repeat
 
