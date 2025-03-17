@@ -367,13 +367,16 @@ function install_requirements_in_active_env {
     run_pip_in_active_env install --upgrade pip setuptools
     run_pip_in_active_env install --upgrade --index-strategy unsafe-best-match -r requirements-global.txt -r "$(get_platform_requirements_path)"
     
-    git clone https://github.com/huggingface/diffusers.git
+    # Installing these separately since uv pip doesn't support egg
+    [ ! -d "diffusers" ] && git clone https://github.com/huggingface/diffusers.git
+    [ ! -d "mgds" ] && git clone https://github.com/Nerogar/mgds.git
+    
+    # Checkout specific commits (will do nothing if already at that commit)
     cd diffusers && git checkout 464374f && cd ..
-    git clone https://github.com/Nerogar/mgds.git
     cd mgds && git checkout 42c7ca0 && cd ..
     
-    # Then install as editable from local directories
-    run_pip_in_active_env install -e ./diffusers -e ./mgds
+    # Install as editable from local directories
+    uv pip install -e ./diffusers -e ./mgds
     export OT_MUST_INSTALL_REQUIREMENTS="false"
 
     # Write update-check metadata to disk if user has requested "lazy updates",
