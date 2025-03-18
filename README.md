@@ -23,6 +23,7 @@ OneTrainer is a one-stop solution for all your stable diffusion training needs.
 -   **Dataset Tooling**: Automatically caption your dataset using BLIP, BLIP2 and WD-1.4, or create masks for masked training using ClipSeg or Rembg
 -   **Model Tooling**: Convert between different model formats from a simple UI
 -   **Sampling UI**: Sample the model during training without switching to a different application
+-   **Model Compilation**: Accelerate training with torch.compile and Triton for faster iterations
 
 ![OneTrainerGUI.gif](resources/images/OneTrainerGUI.gif)
 

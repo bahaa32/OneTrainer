@@ -10,6 +10,7 @@ from modules.util.config.ConceptConfig import ConceptConfig
 from modules.util.config.SampleConfig import SampleConfig
 from modules.util.config.SecretsConfig import SecretsConfig
 from modules.util.enum.AudioFormat import AudioFormat
+from modules.util.enum.CompilationMode import CompilationMode
 from modules.util.enum.ConfigPart import ConfigPart
 from modules.util.enum.DataType import DataType
 from modules.util.enum.EMAMode import EMAMode
@@ -263,6 +264,12 @@ class TrainConfig(BaseConfig):
     enable_activation_offloading: bool
     layer_offload_fraction: float
     force_circular_padding: bool
+
+    # compilation settings
+    compilation_mode: CompilationMode
+    compile_unet: bool
+    compile_text_encoder: bool
+    compile_vae: bool
 
     # data settings
     concept_file_name: str
@@ -744,6 +751,12 @@ class TrainConfig(BaseConfig):
         data.append(("enable_activation_offloading", True, bool, False))
         data.append(("layer_offload_fraction", 0.0, float, False))
         data.append(("force_circular_padding", False, bool, False))
+
+        # compilation settings
+        data.append(("compilation_mode", CompilationMode.NONE, CompilationMode, False))
+        data.append(("compile_unet", True, bool, False))
+        data.append(("compile_text_encoder", False, bool, False))
+        data.append(("compile_vae", False, bool, False))
 
         # data settings
         data.append(("concept_file_name", "training_concepts/concepts.json", str, False))

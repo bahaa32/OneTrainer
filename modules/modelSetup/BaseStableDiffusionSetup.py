@@ -13,9 +13,11 @@ from modules.util.checkpointing_util import (
     enable_checkpointing_for_basic_transformer_blocks,
     enable_checkpointing_for_clip_encoder_layers,
 )
+from modules.util.compilation_util import compile_model
 from modules.util.config.TrainConfig import TrainConfig
 from modules.util.conv_util import apply_circular_padding_to_conv2d
 from modules.util.dtype_util import create_autocast_context
+from modules.util.enum.CompilationMode import CompilationMode
 from modules.util.enum.TrainingMethod import TrainingMethod
 from modules.util.quantization_util import quantize_layers
 from modules.util.TrainProgress import TrainProgress
@@ -65,6 +67,17 @@ class BaseStableDiffusionSetup(
         quantize_layers(model.text_encoder, self.train_device, model.train_dtype)
         quantize_layers(model.vae, self.train_device, model.train_dtype)
         quantize_layers(model.unet, self.train_device, model.train_dtype)
+        
+        # Apply compilation if enabled
+        if config.compilation_mode.enabled():
+            if config.compile_unet and model.unet is not None:
+                model.unet = compile_model(model.unet, config.compilation_mode, "UNet")
+            
+            if config.compile_text_encoder and model.text_encoder is not None:
+                model.text_encoder = compile_model(model.text_encoder, config.compilation_mode, "Text Encoder")
+                
+            if config.compile_vae and model.vae is not None:
+                model.vae = compile_model(model.vae, config.compilation_mode, "VAE")
 
     def _setup_embeddings(
             self,

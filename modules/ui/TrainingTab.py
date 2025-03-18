@@ -1,8 +1,10 @@
+from modules.ui.CompilationSettingsWindow import CompilationSettingsWindow
 from modules.ui.OffloadingWindow import OffloadingWindow
 from modules.ui.OptimizerParamsWindow import OptimizerParamsWindow
 from modules.ui.SchedulerParamsWindow import SchedulerParamsWindow
 from modules.ui.TimestepDistributionWindow import TimestepDistributionWindow
 from modules.util.config.TrainConfig import TrainConfig
+from modules.util.enum.CompilationMode import CompilationMode
 from modules.util.enum.DataType import DataType
 from modules.util.enum.EMAMode import EMAMode
 from modules.util.enum.GradientCheckpointingMethod import GradientCheckpointingMethod
@@ -86,6 +88,7 @@ class TrainingTab:
 
         self.__create_masked_frame(column_2, 1)
         self.__create_loss_frame(column_2, 2)
+        self.__create_advanced_frame(column_2, 3)
 
     def __setup_stable_diffusion_3_ui(self, column_0, column_1, column_2):
         self.__create_base_frame(column_0, 0)
@@ -100,6 +103,7 @@ class TrainingTab:
 
         self.__create_masked_frame(column_2, 1)
         self.__create_loss_frame(column_2, 2)
+        self.__create_advanced_frame(column_2, 3)
 
     def __setup_stable_diffusion_xl_ui(self, column_0, column_1, column_2):
         self.__create_base_frame(column_0, 0)
@@ -113,6 +117,7 @@ class TrainingTab:
 
         self.__create_masked_frame(column_2, 1)
         self.__create_loss_frame(column_2, 2)
+        self.__create_advanced_frame(column_2, 3)
 
     def __setup_wuerstchen_ui(self, column_0, column_1, column_2):
         self.__create_base_frame(column_0, 0)
@@ -125,6 +130,7 @@ class TrainingTab:
 
         self.__create_masked_frame(column_2, 0)
         self.__create_loss_frame(column_2, 1)
+        self.__create_advanced_frame(column_2, 2)
 
     def __setup_pixart_alpha_ui(self, column_0, column_1, column_2):
         self.__create_base_frame(column_0, 0)
@@ -137,6 +143,7 @@ class TrainingTab:
 
         self.__create_masked_frame(column_2, 1)
         self.__create_loss_frame(column_2, 2, supports_vb_loss=True)
+        self.__create_advanced_frame(column_2, 3)
 
     def __setup_flux_ui(self, column_0, column_1, column_2):
         self.__create_base_frame(column_0, 0)
@@ -150,6 +157,7 @@ class TrainingTab:
 
         self.__create_masked_frame(column_2, 1)
         self.__create_loss_frame(column_2, 2)
+        self.__create_advanced_frame(column_2, 3)
 
     def __setup_sana_ui(self, column_0, column_1, column_2):
         self.__create_base_frame(column_0, 0)
@@ -162,6 +170,7 @@ class TrainingTab:
 
         self.__create_masked_frame(column_2, 1)
         self.__create_loss_frame(column_2, 2)
+        self.__create_advanced_frame(column_2, 3)
 
     def __setup_hunyuan_video_ui(self, column_0, column_1, column_2):
         self.__create_base_frame(column_0, 0)
@@ -175,11 +184,16 @@ class TrainingTab:
 
         self.__create_masked_frame(column_2, 1)
         self.__create_loss_frame(column_2, 2)
+        self.__create_advanced_frame(column_2, 3)
 
     def __create_base_frame(self, master, row):
         frame = ctk.CTkFrame(master=master, corner_radius=5)
         frame.grid(row=row, column=0, padx=5, pady=5, sticky="nsew")
         frame.grid_columnconfigure(0, weight=1)
+
+        # Initialize compilation mode UI state if needed
+        if not self.ui_state.has_var("compilation_mode"):
+            self.ui_state.add_var("compilation_mode", "NONE")
 
         # optimizer
         components.label(frame, 0, 0, "Optimizer",
@@ -248,6 +262,8 @@ class TrainingTab:
                          tooltip="Clips the gradient norm. Leave empty to disable gradient clipping.")
         components.entry(frame, 10, 1, self.ui_state, "clip_grad_norm")
 
+        row += 1
+
     def __create_base2_frame(self, master, row, video_training_enabled: bool = False):
         frame = ctk.CTkFrame(master=master, corner_radius=5)
         frame.grid(row=row, column=0, padx=5, pady=5, sticky="nsew")
@@ -283,6 +299,13 @@ class TrainingTab:
         components.label(frame, row, 0, "Layer offload fraction",
                          tooltip="Enables offloading of individual layers during training to reduce VRAM usage. Increases training time and uses more RAM. Only available if checkpointing is set to CPU_OFFLOADED. values between 0 and 1, 0=disabled")
         components.entry(frame, row, 1, self.ui_state, "layer_offload_fraction")
+        row += 1
+
+        # model compilation
+        components.label(frame, row, 0, "Model Compilation",
+                         tooltip="Enable model compilation with torch.compile for faster training")
+        components.options_adv(frame, row, 1, [mode.value for mode in CompilationMode], self.ui_state,
+                           "compilation_mode", adv_command=self.__open_compilation_settings_window)
         row += 1
 
         # train dtype
@@ -655,8 +678,6 @@ class TrainingTab:
                          tooltip="Dynamically shift the timestep distribution based on resolution. Use the preview to see more details.")
         components.switch(frame, 8, 1, self.ui_state, "dynamic_timestep_shifting")
 
-
-
     def __create_masked_frame(self, master, row):
         frame = ctk.CTkFrame(master=master, corner_radius=5)
         frame.grid(row=row, column=0, padx=5, pady=5, sticky="nsew")
@@ -723,6 +744,39 @@ class TrainingTab:
                          tooltip="Selects the type of loss scaling to use during training. Functionally equated as: Loss * selection")
         components.options(frame, 6, 1, [str(x) for x in list(LossScaler)], self.ui_state, "loss_scaler")
 
+    def __create_advanced_frame(self, master, row):
+        frame = ctk.CTkFrame(master=master, corner_radius=5)
+        frame.grid(row=row, column=0, padx=5, pady=5, sticky="nsew")
+        frame.grid_columnconfigure(0, weight=1)
+
+        row = 0
+        
+        # Initialize compilation-related UI state if needed
+        if not self.ui_state.has_var("compile_unet"):
+            self.ui_state.add_var("compile_unet", True)
+        if not self.ui_state.has_var("compile_text_encoder"):
+            self.ui_state.add_var("compile_text_encoder", False)
+        if not self.ui_state.has_var("compile_vae"):
+            self.ui_state.add_var("compile_vae", False)
+
+        # compile unet
+        components.label(frame, row, 0, "Compile UNet",
+                         tooltip="Enable UNet compilation with torch.compile for faster training")
+        components.switch(frame, row, 1, self.ui_state, "compile_unet")
+        row += 1
+
+        # compile text encoder
+        components.label(frame, row, 0, "Compile Text Encoder",
+                         tooltip="Enable text encoder compilation with torch.compile for faster training")
+        components.switch(frame, row, 1, self.ui_state, "compile_text_encoder")
+        row += 1
+
+        # compile vae
+        components.label(frame, row, 0, "Compile VAE",
+                         tooltip="Enable VAE compilation with torch.compile for faster training")
+        components.switch(frame, row, 1, self.ui_state, "compile_vae")
+        row += 1
+
     def __open_optimizer_params_window(self):
         window = OptimizerParamsWindow(self.master, self.train_config, self.ui_state)
         self.master.wait_window(window)
@@ -738,6 +792,24 @@ class TrainingTab:
     def __open_offloading_window(self):
         window = OffloadingWindow(self.master, self.train_config, self.ui_state)
         self.master.wait_window(window)
+
+    def __open_compilation_settings_window(self):
+        """Open the compilation settings window"""
+        try:
+            # Set the compilation mode based on the UI state
+            mode_str = self.ui_state.get("compilation_mode", "NONE")
+            try:
+                self.train_config.compilation_mode = CompilationMode(mode_str)
+            except ValueError:
+                # If the value is not valid, reset to NONE
+                print(f"Invalid compilation mode: {mode_str}, resetting to NONE")
+                self.ui_state.add_var("compilation_mode", "NONE")
+                self.train_config.compilation_mode = CompilationMode.NONE
+                
+            window = CompilationSettingsWindow(self.master, self.train_config, self.ui_state)
+            self.master.wait_window(window)
+        except Exception as e:
+            print(f"Error opening compilation settings window: {e}")
 
     def __restore_optimizer_config(self, *args):
         optimizer_config = change_optimizer(self.train_config)

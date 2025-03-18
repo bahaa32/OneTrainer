@@ -66,14 +66,27 @@ class UIState:
 
         return update
 
-    def __set_enum_var(self, obj, is_dict, name, var, var_type, nullable):
+    def __set_enum_var(self, obj, is_dict, name, var, var_type, nullable=False):
         if is_dict:
             def update(_0, _1, _2):
                 string_var = var.get()
                 if (string_var == "" or string_var == "None") and nullable:
                     obj[name] = None
                 else:
-                    obj[name] = var_type[string_var]
+                    try:
+                        # First try to get the enum value directly from the string
+                        obj[name] = var_type[string_var]
+                    except (KeyError, ValueError):
+                        try:
+                            # If that fails, try to handle cases like "CompilationMode.NONE"
+                            if "." in string_var:
+                                enum_name = string_var.split(".")[-1]
+                                obj[name] = var_type[enum_name]
+                            else:
+                                # If all else fails, print error and do nothing
+                                print(f"Could not set {name} as {string_var}")
+                        except (KeyError, ValueError):
+                            print(f"Could not set {name} as {string_var}")
                 self.__call_var_traces(name)
         else:
             def update(_0, _1, _2):
@@ -81,7 +94,20 @@ class UIState:
                 if (string_var == "" or string_var == "None") and nullable:
                     setattr(obj, name, None)
                 else:
-                    setattr(obj, name, var_type[string_var])
+                    try:
+                        # First try to get the enum value directly from the string
+                        setattr(obj, name, var_type[string_var])
+                    except (KeyError, ValueError):
+                        try:
+                            # If that fails, try to handle cases like "CompilationMode.NONE"
+                            if "." in string_var:
+                                enum_name = string_var.split(".")[-1]
+                                setattr(obj, name, var_type[enum_name])
+                            else:
+                                # If all else fails, print error and do nothing
+                                print(f"Could not set {name} as {string_var}")
+                        except (KeyError, ValueError):
+                            print(f"Could not set {name} as {string_var}")
                 self.__call_var_traces(name)
 
         return update
@@ -264,3 +290,46 @@ class UIState:
                 elif isinstance(obj_var, int | float):
                     var = self.__vars[name]
                     var.set(str(obj_var))
+
+    def has_var(self, name):
+        """Check if a variable exists in the UI state"""
+        try:
+            self.get_var(name)
+            return True
+        except KeyError:
+            return False
+            
+    def add_var(self, name, default_value):
+        """Add a new variable to the UI state"""
+        if name in self.__vars:
+            # Variable already exists, just update its value
+            var = self.__vars[name]
+            if isinstance(var, tk.StringVar):
+                var.set(str(default_value))
+            elif isinstance(var, tk.BooleanVar):
+                var.set(bool(default_value))
+            elif isinstance(var, tk.IntVar):
+                var.set(int(default_value))
+            elif isinstance(var, tk.DoubleVar):
+                var.set(float(default_value))
+        else:
+            # Create a new variable
+            if isinstance(default_value, bool):
+                self.__vars[name] = tk.BooleanVar(value=default_value)
+            elif isinstance(default_value, int):
+                self.__vars[name] = tk.IntVar(value=default_value)
+            elif isinstance(default_value, float):
+                self.__vars[name] = tk.DoubleVar(value=default_value)
+            else:
+                self.__vars[name] = tk.StringVar(value=str(default_value))
+            
+            # Initialize the var traces
+            self.__var_traces[name] = {}
+
+    def get(self, name, default=None):
+        """Get the value of a variable, returning default if it doesn't exist"""
+        try:
+            var = self.get_var(name)
+            return var.get()
+        except KeyError:
+            return default

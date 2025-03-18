@@ -7,3 +7,5 @@
 [Embedding Training](EmbeddingTraining.md)
 
 [Captioning and Masking](CaptioningAndMasking.md)
+
+[Model Compilation](ModelCompilation.md)
