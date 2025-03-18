@@ -568,6 +568,17 @@ class GenericTrainer(BaseTrainer):
         train_device = torch.device(self.config.train_device)
 
         train_progress = self.model.train_progress
+        
+        # Log compilation mode status
+        print("\n=== Training Configuration ===")
+        print(f"🔧 Compilation Mode: {self.config.compilation_mode}")
+        if self.config.compilation_mode.enabled():
+            print(f"✅ UNet Compilation: {'Enabled' if self.config.compile_unet else 'Disabled'}")
+            print(f"✅ Text Encoder Compilation: {'Enabled' if self.config.compile_text_encoder else 'Disabled'}")
+            print(f"✅ VAE Compilation: {'Enabled' if self.config.compile_vae else 'Disabled'}")
+        else:
+            print("⚠️ Model compilation is disabled (mode is NONE)")
+        print("=== End Training Configuration ===\n")
 
         if self.config.only_cache:
             self.callbacks.on_update_status("caching")

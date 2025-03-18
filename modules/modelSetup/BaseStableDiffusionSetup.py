@@ -70,14 +70,23 @@ class BaseStableDiffusionSetup(
         
         # Apply compilation if enabled
         if config.compilation_mode.enabled():
+            print(f"\n=== Model Compilation ===")
+            print(f"🔧 Compilation mode: {config.compilation_mode}")
             if config.compile_unet and model.unet is not None:
                 model.unet = compile_model(model.unet, config.compilation_mode, "UNet")
-            
+            else:
+                print("⚠️ UNet compilation skipped - disabled in settings or model is None")
+                
             if config.compile_text_encoder and model.text_encoder is not None:
                 model.text_encoder = compile_model(model.text_encoder, config.compilation_mode, "Text Encoder")
+            else:
+                print("⚠️ Text Encoder compilation skipped - disabled in settings or model is None")
                 
             if config.compile_vae and model.vae is not None:
                 model.vae = compile_model(model.vae, config.compilation_mode, "VAE")
+            else:
+                print("⚠️ VAE compilation skipped - disabled in settings or model is None")
+            print(f"=== End of Model Compilation ===\n")
 
     def _setup_embeddings(
             self,

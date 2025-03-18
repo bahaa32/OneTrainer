@@ -201,14 +201,31 @@ class TrainingTab:
         components.options_adv(frame, 0, 1, [str(x) for x in list(Optimizer)], self.ui_state, "optimizer.optimizer",
                                command=self.__restore_optimizer_config, adv_command=self.__open_optimizer_params_window)
 
+        # weight dtype
+        components.label(frame, 1, 0, "Weight Dtype",
+                         tooltip="The data type to use for the weights of the model")
+        components.options(frame, 1, 1, [str(x) for x in list(DataType)], self.ui_state, "weight_dtype")
+
+        # output dtype
+        components.label(frame, 2, 0, "Output Dtype",
+                         tooltip="The data type to use for saving the model.")
+        components.options(frame, 2, 1, [str(x) for x in list(DataType)], self.ui_state, "output_dtype")
+
+        # model compilation
+        components.label(frame, 3, 0, "Model Compilation",
+                         tooltip="Enable model compilation with torch.compile for faster training")
+        compilation_options = [(mode.value, mode == CompilationMode.DEFAULT) for mode in CompilationMode]
+        components.options_adv(frame, 3, 1, [mode.value for mode in CompilationMode], self.ui_state,
+                           "compilation_mode", adv_command=self.__open_compilation_settings_window)
+        
         # learning rate scheduler
         # Wackiness will ensue when reloading configs if we don't check and clear this first.
         if hasattr(self, "lr_scheduler_comp"):
             delattr(self, "lr_scheduler_comp")
             delattr(self, "lr_scheduler_adv_comp")
-        components.label(frame, 1, 0, "Learning Rate Scheduler",
+        components.label(frame, 4, 0, "Learning Rate Scheduler",
                          tooltip="Learning rate scheduler that automatically changes the learning rate during training")
-        _, d = components.options_adv(frame, 1, 1, [str(x) for x in list(LearningRateScheduler)], self.ui_state,
+        _, d = components.options_adv(frame, 4, 1, [str(x) for x in list(LearningRateScheduler)], self.ui_state,
                                       "learning_rate_scheduler", command=self.__restore_scheduler_config,
                                       adv_command=self.__open_scheduler_params_window)
         self.lr_scheduler_comp = d['component']
@@ -217,50 +234,50 @@ class TrainingTab:
         self.__restore_scheduler_config(self.ui_state.get_var("learning_rate_scheduler").get())
 
         # learning rate
-        components.label(frame, 2, 0, "Learning Rate",
+        components.label(frame, 5, 0, "Learning Rate",
                          tooltip="The base learning rate")
-        components.entry(frame, 2, 1, self.ui_state, "learning_rate")
+        components.entry(frame, 5, 1, self.ui_state, "learning_rate")
 
         # learning rate warmup steps
-        components.label(frame, 3, 0, "Learning Rate Warmup Steps",
+        components.label(frame, 6, 0, "Learning Rate Warmup Steps",
                          tooltip="The number of steps it takes to gradually increase the learning rate from 0 to the specified learning rate. Values >1 are interpeted as a fixed number of steps, values <=1 are intepreted as a percentage of the total training steps (ex. 0.2 = 20% of the total step count)")
-        components.entry(frame, 3, 1, self.ui_state, "learning_rate_warmup_steps")
+        components.entry(frame, 6, 1, self.ui_state, "learning_rate_warmup_steps")
 
         # learning rate min factor
-        components.label(frame, 4, 0, "Learning Rate Min Factor",
+        components.label(frame, 7, 0, "Learning Rate Min Factor",
                          tooltip="Unit = float. Method = percentage. For a factor of 0.1, the final LR will be 10% of the initial LR. If the initial LR is 1e-4, the final LR will be 1e-5.")
-        components.entry(frame, 4, 1, self.ui_state, "learning_rate_min_factor")
+        components.entry(frame, 7, 1, self.ui_state, "learning_rate_min_factor")
 
         # learning rate cycles
-        components.label(frame, 5, 0, "Learning Rate Cycles",
+        components.label(frame, 8, 0, "Learning Rate Cycles",
                          tooltip="The number of learning rate cycles. This is only applicable if the learning rate scheduler supports cycles")
-        components.entry(frame, 5, 1, self.ui_state, "learning_rate_cycles")
+        components.entry(frame, 8, 1, self.ui_state, "learning_rate_cycles")
 
         # epochs
-        components.label(frame, 6, 0, "Epochs",
+        components.label(frame, 9, 0, "Epochs",
                          tooltip="The number of epochs for a full training run")
-        components.entry(frame, 6, 1, self.ui_state, "epochs")
+        components.entry(frame, 9, 1, self.ui_state, "epochs")
 
         # batch size
-        components.label(frame, 7, 0, "Batch Size",
+        components.label(frame, 10, 0, "Batch Size",
                          tooltip="The batch size of one training step")
-        components.entry(frame, 7, 1, self.ui_state, "batch_size")
+        components.entry(frame, 10, 1, self.ui_state, "batch_size")
 
         # accumulation steps
-        components.label(frame, 8, 0, "Accumulation Steps",
+        components.label(frame, 11, 0, "Accumulation Steps",
                          tooltip="Number of accumulation steps. Increase this number to trade batch size for training speed")
-        components.entry(frame, 8, 1, self.ui_state, "gradient_accumulation_steps")
+        components.entry(frame, 11, 1, self.ui_state, "gradient_accumulation_steps")
 
         # Learning Rate Scaler
-        components.label(frame, 9, 0, "Learning Rate Scaler",
+        components.label(frame, 12, 0, "Learning Rate Scaler",
                          tooltip="Selects the type of learning rate scaling to use during training. Functionally equated as: LR * SQRT(selection)")
-        components.options(frame, 9, 1, [str(x) for x in list(LearningRateScaler)], self.ui_state,
+        components.options(frame, 12, 1, [str(x) for x in list(LearningRateScaler)], self.ui_state,
                            "learning_rate_scaler")
 
         # clip grad norm
-        components.label(frame, 10, 0, "Clip Grad Norm",
+        components.label(frame, 13, 0, "Clip Grad Norm",
                          tooltip="Clips the gradient norm. Leave empty to disable gradient clipping.")
-        components.entry(frame, 10, 1, self.ui_state, "clip_grad_norm")
+        components.entry(frame, 13, 1, self.ui_state, "clip_grad_norm")
 
         row += 1
 
@@ -759,6 +776,11 @@ class TrainingTab:
         if not self.ui_state.has_var("compile_vae"):
             self.ui_state.add_var("compile_vae", False)
 
+        # Compilation model components header
+        components.label(frame, row, 0, "Model Components to Compile",
+                         tooltip="Select which model components to compile with torch.compile")
+        row += 1
+            
         # compile unet
         components.label(frame, row, 0, "Compile UNet",
                          tooltip="Enable UNet compilation with torch.compile for faster training")
@@ -795,21 +817,10 @@ class TrainingTab:
 
     def __open_compilation_settings_window(self):
         """Open the compilation settings window"""
-        try:
-            # Set the compilation mode based on the UI state
-            mode_str = self.ui_state.get("compilation_mode", "NONE")
-            try:
-                self.train_config.compilation_mode = CompilationMode(mode_str)
-            except ValueError:
-                # If the value is not valid, reset to NONE
-                print(f"Invalid compilation mode: {mode_str}, resetting to NONE")
-                self.ui_state.add_var("compilation_mode", "NONE")
-                self.train_config.compilation_mode = CompilationMode.NONE
-                
-            window = CompilationSettingsWindow(self.master, self.train_config, self.ui_state)
-            self.master.wait_window(window)
-        except Exception as e:
-            print(f"Error opening compilation settings window: {e}")
+        if not hasattr(self, 'compilation_window') or not self.compilation_window.winfo_exists():
+            self.compilation_window = CompilationSettingsWindow(self.master, self.train_config, self.ui_state)
+            self.compilation_window.grab_set()  # Make the window modal
+            self.compilation_window.focus_set()  # Set focus to the window
 
     def __restore_optimizer_config(self, *args):
         optimizer_config = change_optimizer(self.train_config)
