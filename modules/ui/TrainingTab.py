@@ -768,36 +768,7 @@ class TrainingTab:
 
         row = 0
         
-        # Initialize compilation-related UI state if needed
-        if not self.ui_state.has_var("compile_unet"):
-            self.ui_state.add_var("compile_unet", True)
-        if not self.ui_state.has_var("compile_text_encoder"):
-            self.ui_state.add_var("compile_text_encoder", False)
-        if not self.ui_state.has_var("compile_vae"):
-            self.ui_state.add_var("compile_vae", False)
-
-        # Compilation model components header
-        components.label(frame, row, 0, "Model Components to Compile",
-                         tooltip="Select which model components to compile with torch.compile")
-        row += 1
-            
-        # compile unet
-        components.label(frame, row, 0, "Compile UNet",
-                         tooltip="Enable UNet compilation with torch.compile for faster training")
-        components.switch(frame, row, 1, self.ui_state, "compile_unet")
-        row += 1
-
-        # compile text encoder
-        components.label(frame, row, 0, "Compile Text Encoder",
-                         tooltip="Enable text encoder compilation with torch.compile for faster training")
-        components.switch(frame, row, 1, self.ui_state, "compile_text_encoder")
-        row += 1
-
-        # compile vae
-        components.label(frame, row, 0, "Compile VAE",
-                         tooltip="Enable VAE compilation with torch.compile for faster training")
-        components.switch(frame, row, 1, self.ui_state, "compile_vae")
-        row += 1
+        # Add other advanced settings here as needed
 
     def __open_optimizer_params_window(self):
         window = OptimizerParamsWindow(self.master, self.train_config, self.ui_state)

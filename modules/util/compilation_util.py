@@ -27,6 +27,10 @@ def compile_model(model: nn.Module, mode: CompilationMode, model_name: str = Non
     try:
         if mode == CompilationMode.DEFAULT:
             compiled_model = torch.compile(model)
+        elif mode == CompilationMode.REDUCE_OVERHEAD:
+            compiled_model = torch.compile(model, backend="triton", mode="reduce-overhead")
+        elif mode == CompilationMode.MAX_AUTOTUNE:
+            compiled_model = torch.compile(model, backend="triton", mode="max-autotune")
         elif mode == CompilationMode.INDUCTOR:
             compiled_model = torch.compile(model, backend="inductor")
         elif mode == CompilationMode.TRITON:
